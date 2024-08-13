@@ -8,36 +8,46 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
+import { Prisma } from '@prisma/client';
 import { Socket, Server } from 'socket.io';
-import { Message } from 'src/messages/entities/message.entity';
 import { MessagesService } from 'src/messages/messages.service';
-import { Repository } from 'typeorm';
+import { PrismaService } from 'src/prisma.service';
 import { IMessage } from 'types/types';
 // @Injectable()
 @WebSocketGateway({ cors: { origin: '*' } })
 export class SocketService implements OnGatewayConnection {
   constructor(
-    @InjectRepository(Message)
-    private readonly messageRepository: Repository<Message>,
+    private prisma: PrismaService,
+    private messagesService: MessagesService,
   ) {}
   @WebSocketServer() server: Server;
 
   @SubscribeMessage('server-path')
   handleEvent(@MessageBody() dto: IMessage, @ConnectedSocket() client: Socket) {
-    console.log(dto);
     // const res = { type: 'someType', dto };
-    this.server.emit('message', dto);
-    this.create(dto);
+    if (dto.type === 'new-message') {
+      this.server.emit(dto.type, dto);
+      this.create(dto);
+      console.log(dto);
+    } else if (dto.type === 'update-message') {
+      this.server.emit(dto.type, dto);
+      this.messagesService.update(dto.id, dto);
+      console.log(dto);
+    } else if (dto.type === 'delete-message') {
+      this.server.emit(dto.type, dto);
+      this.messagesService.remove(dto.id);
+      console.log(dto);
+    }
   }
 
   async create(dto: IMessage) {
-    const newMessage = {
-      text: dto.text,
-      user: {
-        id: dto.user.id,
+    const newMessage = await this.prisma.message.create({
+      data: {
+        text: dto.text,
+        userId: dto.user.id,
       },
-    };
-    return await this.messageRepository.save(newMessage);
+    });
+    return { newMessage };
   }
 
   handleConnection(client: Socket) {

@@ -11,7 +11,9 @@ export interface IMessageUser {
 }
 
 export interface IMessage {
+  type: string;
+  id: number;
   text: string;
   createdAt?: Date;
-  user: IMessageUser;
+  user?: IMessageUser;
 }
