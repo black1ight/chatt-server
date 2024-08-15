@@ -15,6 +15,7 @@ export interface IMessage {
   id: number;
   text: string;
   userId: number;
+  updatedAt: Date;
 }
 
 export interface INewMessage {

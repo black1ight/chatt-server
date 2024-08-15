@@ -3,4 +3,5 @@ import { CreateMessageDto } from './create-message.dto';
 
 export class UpdateMessageDto extends PartialType(CreateMessageDto) {
   text: string;
+  updatedAt: Date;
 }
