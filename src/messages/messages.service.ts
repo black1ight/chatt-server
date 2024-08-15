@@ -56,7 +56,7 @@ export class MessagesService {
     return `This action returns a #${id} message`;
   }
 
-  async update(id: number, dto: UpdateMessageDto) {
+  async update(id: number, dto: IMessage) {
     return await this.prisma.message.update({
       where: {
         id,
