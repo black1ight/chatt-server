@@ -29,9 +29,9 @@ export class MessagesService {
           },
         },
       },
-      orderBy: {
-        createdAt: 'asc',
-      },
+      // orderBy: {
+      //   createdAt: 'asc',
+      // },
     });
   }
 
