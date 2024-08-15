@@ -61,7 +61,7 @@ export class MessagesService {
       where: {
         id,
       },
-      data: { text: dto.text, updatedAt: new Date() },
+      data: { text: dto.text },
     });
   }
 
