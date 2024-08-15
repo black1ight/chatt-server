@@ -8,8 +8,8 @@ import { PrismaService } from 'src/prisma.service';
 @Injectable()
 export class UserService {
   constructor(
-    private prisma: PrismaService,
-    private jwtService: JwtService,
+    private readonly prisma: PrismaService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {

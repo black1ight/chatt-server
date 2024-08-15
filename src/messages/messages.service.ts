@@ -2,12 +2,20 @@ import { Injectable } from '@nestjs/common';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
 import { PrismaService } from 'src/prisma.service';
+import { IMessage, IUser } from 'types/types';
 
 @Injectable()
 export class MessagesService {
   constructor(private prisma: PrismaService) {}
-  create(createMessageDto: CreateMessageDto, req) {
-    return 'This action adds a new message';
+  async create(dto: IMessage) {
+    const newMessage = await this.prisma.message.create({
+      data: {
+        text: dto.text,
+        userId: dto.userId,
+      },
+    });
+    const { id } = newMessage;
+    return await this.getById(id);
   }
 
   async findAll() {
@@ -21,6 +29,9 @@ export class MessagesService {
           },
         },
       },
+      orderBy: {
+        createdAt: 'asc',
+      },
     });
   }
 
@@ -28,6 +39,15 @@ export class MessagesService {
     return await this.prisma.message.findUnique({
       where: {
         id,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            user_name: true,
+            email: true,
+          },
+        },
       },
     });
   }
@@ -41,7 +61,7 @@ export class MessagesService {
       where: {
         id,
       },
-      data: { text: dto.text },
+      data: { text: dto.text, updatedAt: new Date() },
     });
   }
 
