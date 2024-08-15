@@ -1,5 +1,5 @@
 export interface IUser {
-  id: string;
+  id: number;
   email: string;
   createdAt?: Date;
 }
@@ -14,6 +14,16 @@ export interface IMessage {
   type: string;
   id: number;
   text: string;
-  createdAt?: Date;
-  user?: IMessageUser;
+  userId: number;
+}
+
+export interface INewMessage {
+  id: number;
+  text: string;
+  userId: number;
+  createdAt: Date;
+}
+
+export interface IResCreateMessage {
+  newMessage: INewMessage;
 }
