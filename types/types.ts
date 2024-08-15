@@ -15,16 +15,4 @@ export interface IMessage {
   id: number;
   text: string;
   userId: number;
-  updatedAt?: Date;
-}
-
-export interface INewMessage {
-  id: number;
-  text: string;
-  userId: number;
-  createdAt: Date;
-}
-
-export interface IResCreateMessage {
-  newMessage: INewMessage;
 }
