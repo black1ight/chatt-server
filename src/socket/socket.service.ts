@@ -25,9 +25,9 @@ export class SocketService implements OnGatewayConnection {
       this.server.emit(dto.type, data);
       console.log(data);
     } else if (dto.type === 'update-message') {
-      this.server.emit(dto.type, dto);
-      this.messagesService.update(dto.id, dto);
-      console.log(dto);
+      const data = await this.messagesService.update(dto.id, dto);
+      this.server.emit(dto.type, data);
+      console.log(data);
     } else if (dto.type === 'delete-message') {
       this.server.emit(dto.type, dto);
       this.messagesService.remove(dto.id);
