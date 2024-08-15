@@ -45,8 +45,8 @@ export class MessagesController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe())
-  update(@Param('id') id: string, @Body() updateMessageDto: UpdateMessageDto) {
-    return this.messagesService.update(+id, updateMessageDto);
+  update(@Param('id') id: string, @Body() dto: IMessage) {
+    return this.messagesService.update(+id, dto);
   }
 
   @Delete(':id')
