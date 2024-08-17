@@ -10,7 +10,23 @@ export interface IMessageUser {
   email?: string;
 }
 
+export interface IUser {
+  id: number;
+  user_name: string;
+  email: string;
+}
+
+export interface IResMessage {
+  id: number;
+  text: string;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: number;
+  user: IUser;
+}
+
 export interface IMessage {
+  replyMessage: IResMessage;
   type: string;
   id: number;
   text: string;

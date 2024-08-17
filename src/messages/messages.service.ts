@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { CreateMessageDto } from './dto/create-message.dto';
-import { UpdateMessageDto } from './dto/update-message.dto';
 import { PrismaService } from 'src/prisma.service';
-import { IMessage, IUser } from 'types/types';
+import { IMessage } from 'types/types';
 
 @Injectable()
 export class MessagesService {
@@ -10,6 +8,7 @@ export class MessagesService {
   async create(dto: IMessage) {
     const newMessage = await this.prisma.message.create({
       data: {
+        replyMessage: dto.replyMessage && JSON.stringify(dto.replyMessage),
         text: dto.text,
         userId: dto.userId,
       },
