@@ -26,7 +26,7 @@ export interface IResMessage {
 }
 
 export interface IMessage {
-  reply: number;
+  reply: number | null;
   type: string;
   id: number;
   text: string;
