@@ -23,11 +23,15 @@ model User {
 }
 
 model Message {
-  id        Int      @default(autoincrement()) @id
+  id        Int     @default(autoincrement()) @id
   text     String
   userId Int
-  replyMessage String?
-  user User @relation(fields: [userId], references: [id])
+  replyId Int?
+  reply Message? @relation("ReplyMessage", fields: [replyId], references: [id], onDelete: Cascade)
+  replyMessage Message[] @relation("ReplyMessage")
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @default(now()) @db.Timestamptz(3)
 }
+
+

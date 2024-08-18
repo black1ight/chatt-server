@@ -8,7 +8,7 @@ export class MessagesService {
   async create(dto: IMessage) {
     const newMessage = await this.prisma.message.create({
       data: {
-        replyMessage: dto.replyMessage && JSON.stringify(dto.replyMessage),
+        replyId: dto.reply,
         text: dto.text,
         userId: dto.userId,
       },
@@ -27,6 +27,17 @@ export class MessagesService {
             user_name: true,
           },
         },
+        reply: {
+          select: {
+            text: true,
+            user: {
+              select: {
+                email: true,
+                user_name: true,
+              },
+            },
+          },
+        },
       },
       orderBy: {
         createdAt: 'asc',
@@ -43,8 +54,19 @@ export class MessagesService {
         user: {
           select: {
             id: true,
-            user_name: true,
             email: true,
+            user_name: true,
+          },
+        },
+        reply: {
+          select: {
+            text: true,
+            user: {
+              select: {
+                email: true,
+                user_name: true,
+              },
+            },
           },
         },
       },
