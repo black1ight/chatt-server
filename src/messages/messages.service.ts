@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
-import { IMessage } from 'types/types';
+import { IMessage, IUser } from 'types/types';
+import { GetMessagesDto } from './dto/get-messages.dto';
 
 @Injectable()
 export class MessagesService {
@@ -11,14 +12,53 @@ export class MessagesService {
         replyId: dto.reply,
         text: dto.text,
         userId: dto.userId,
+        roomId: dto.roomId,
+        readUsers: [dto.userId],
       },
     });
     const { id } = newMessage;
     return await this.getById(id);
   }
 
-  async findAll() {
+  async findMany(query: GetMessagesDto, user: IUser) {
+    const { room, unread, sortBy } = query;
+
     return await this.prisma.message.findMany({
+      where: {
+        AND: [
+          {
+            OR: [
+              {
+                roomId: room,
+              },
+            ],
+          },
+          {
+            OR: [
+              {
+                NOT: {
+                  readUsers: {
+                    has: +unread,
+                  },
+                },
+              },
+            ],
+          },
+          {
+            OR: [
+              {
+                room: {
+                  users: {
+                    some: {
+                      id: user.id,
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
       include: {
         user: {
           select: {
@@ -83,6 +123,21 @@ export class MessagesService {
         id,
       },
       data: { text: dto.text },
+    });
+  }
+
+  async updateRead(id: number, dto: IMessage, user: IUser) {
+    const currentMessage = await this.getById(id);
+    return await this.prisma.message.update({
+      where: {
+        id,
+      },
+      data: {
+        readUsers: {
+          push: user.id,
+        },
+        updatedAt: currentMessage.updatedAt,
+      },
     });
   }
 
