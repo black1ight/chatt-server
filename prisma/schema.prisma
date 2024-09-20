@@ -38,7 +38,7 @@ model Message {
 }
 
 model Room {
-  id        String    @id
+  id        String    @id @default(uuid())
   color     Json
   owner Int
   createdAt DateTime  @default(now()) @db.Timestamptz(3)
