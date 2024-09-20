@@ -62,6 +62,6 @@ export class RoomController {
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe())
   remove(@Param('id') id: string) {
-    return this.roomService.remove(+id);
+    return this.roomService.remove(id);
   }
 }

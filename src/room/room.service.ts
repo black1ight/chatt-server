@@ -153,7 +153,9 @@ export class RoomService {
     });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} room`;
+  async remove(id: string) {
+    return await this.prisma.room.delete({
+      where: { id },
+    });
   }
 }
