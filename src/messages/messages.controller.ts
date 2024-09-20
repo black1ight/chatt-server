@@ -10,12 +10,13 @@ import {
   UsePipes,
   ValidationPipe,
   Req,
+  Query,
+  Request,
 } from '@nestjs/common';
 import { MessagesService } from './messages.service';
-import { CreateMessageDto } from './dto/create-message.dto';
-import { UpdateMessageDto } from './dto/update-message.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { IMessage, IUser } from 'types/types';
+import { IMessage } from 'types/types';
+import { GetMessagesDto } from './dto/get-messages.dto';
 
 @Controller('messages')
 export class MessagesController {
@@ -31,8 +32,8 @@ export class MessagesController {
   @Get()
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe())
-  findAll() {
-    return this.messagesService.findAll();
+  findAll(@Query() query: GetMessagesDto, @Request() req) {
+    return this.messagesService.findMany(query, req.user);
   }
 
   @Get(':id')
@@ -47,6 +48,13 @@ export class MessagesController {
   @UsePipes(new ValidationPipe())
   update(@Param('id') id: string, @Body() dto: IMessage) {
     return this.messagesService.update(+id, dto);
+  }
+
+  @Patch('read/:id')
+  @UseGuards(JwtAuthGuard)
+  @UsePipes(new ValidationPipe())
+  updateRead(@Param('id') id: string, @Body() dto: IMessage, @Request() req) {
+    return this.messagesService.updateRead(+id, dto, req.user);
   }
 
   @Delete(':id')

@@ -6,4 +6,9 @@ export class CreateUserDto {
 
   @MinLength(6, { message: 'password must be more then 6 symbols' })
   password: string;
+
+  color: {
+    first: string;
+    second: string;
+  };
 }

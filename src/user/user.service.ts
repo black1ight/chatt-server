@@ -4,6 +4,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import * as argon2 from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma.service';
+import { GetUsersDto } from './dto/get-users.dto';
 
 @Injectable()
 export class UserService {
@@ -24,6 +25,7 @@ export class UserService {
       data: {
         email: createUserDto.email,
         password: await argon2.hash(createUserDto.password),
+        color: createUserDto.color,
       },
     });
 
@@ -32,8 +34,36 @@ export class UserService {
     return { user, token };
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async findMany(query: GetUsersDto) {
+    const { search } = query;
+
+    return await this.prisma.user.findMany({
+      where: {
+        OR: [
+          {
+            email: {
+              contains: search,
+              mode: 'insensitive',
+            },
+          },
+          {
+            user_name: {
+              contains: search,
+              mode: 'insensitive',
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        email: true,
+        user_name: true,
+        color: true,
+        online: true,
+        lastSeen: true,
+        socketId: true,
+      },
+    });
   }
 
   async findOne(email: string) {
@@ -42,8 +72,19 @@ export class UserService {
     });
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: number, dto: UpdateUserDto) {
+    const updateData: any = {};
+    if (dto.status && dto.lastSeen && dto.socketId) {
+      updateData.socketId = dto.socketId;
+      updateData.online = dto.status === 'online' ? true : false;
+      updateData.lastSeen = dto.lastSeen;
+    }
+    return await this.prisma.user.update({
+      where: {
+        id,
+      },
+      data: updateData,
+    });
   }
 
   remove(id: number) {

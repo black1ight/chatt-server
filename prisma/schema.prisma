@@ -1,11 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
@@ -14,19 +9,39 @@ datasource db {
 }
 
 model User {
-  id    Int     @default(autoincrement()) @id
-  email String  @unique
-  user_name  String?
-  password String 
-  messages Message[]
-  createdAt DateTime @default(now())
+  id        Int       @id @default(autoincrement())
+  socketId String?
+  email     String    @unique
+  user_name String?
+  password  String
+  color     Json
+  createdAt DateTime  @default(now())
+  messages  Message[]
+  rooms     Room[]    @relation("RoomToUser")
+  online Boolean @default(false)
+  lastSeen DateTime @default(now())
 }
 
 model Message {
-  id        Int      @default(autoincrement()) @id
-  text     String
-  userId Int
-  user User @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt DateTime @updatedAt @default(now()) @db.Timestamptz(3)
+  id           Int       @id @default(autoincrement())
+  text         String
+  userId       Int
+  replyId      Int?
+  roomId       String
+  readUsers    Int[]
+  createdAt    DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime  @default(now()) @updatedAt @db.Timestamptz(3)
+  reply        Message?  @relation("ReplyMessage", fields: [replyId], references: [id], onDelete: Cascade)
+  replyMessage Message[] @relation("ReplyMessage")
+  room         Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Room {
+  id        String    @id @default(uuid())
+  color     Json
+  owner Int
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  messages  Message[]
+  users     User[]    @relation("RoomToUser")
 }
