@@ -11,7 +11,7 @@ export class MessagesService {
   async create(dto: IMessage) {
     const newMessage = await this.prisma.message.create({
       data: {
-        replyId: dto.reply,
+        replyId: dto.replyId,
         text: dto.text,
         userId: dto.userId,
         roomId: dto.roomId,
