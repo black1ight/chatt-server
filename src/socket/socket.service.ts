@@ -55,6 +55,8 @@ export class SocketService implements OnGatewayConnection {
     @MessageBody() dto: IMessage,
     @ConnectedSocket() client: Socket,
   ) {
+    console.log(`dto: ${dto}`);
+
     const data = await this.messagesService.create(dto);
     if (data) {
       this.server.to(dto.roomId).emit('new-message', data);
