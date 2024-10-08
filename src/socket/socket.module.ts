@@ -4,6 +4,7 @@ import { PrismaService } from 'src/prisma.service';
 import { MessagesService } from 'src/messages/messages.service';
 import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
+import { RoomService } from 'src/room/room.service';
 
 @Module({
   imports: [],
@@ -12,6 +13,7 @@ import { JwtService } from '@nestjs/jwt';
     JwtService,
     PrismaService,
     MessagesService,
+    RoomService,
     UserService,
   ],
 })

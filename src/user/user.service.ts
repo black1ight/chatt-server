@@ -72,12 +72,19 @@ export class UserService {
     });
   }
 
+  async findById(id: number) {
+    return await this.prisma.user.findUnique({ where: { id } });
+  }
+
   async update(id: number, dto: UpdateUserDto) {
     const updateData: any = {};
     if (dto.status && dto.lastSeen && dto.socketId) {
       updateData.socketId = dto.socketId;
       updateData.online = dto.status === 'online' ? true : false;
       updateData.lastSeen = dto.lastSeen;
+    }
+    if (dto.imageUrl) {
+      updateData.imageUrl = dto.imageUrl;
     }
     return await this.prisma.user.update({
       where: {
