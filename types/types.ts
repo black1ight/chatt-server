@@ -28,8 +28,16 @@ export interface IResMessage {
   user: IUser;
 }
 
+export interface IReplyData {
+  text: string;
+  user: {
+    email: string;
+    user_name: string;
+  };
+}
+
 export interface IMessage {
-  reply: number | null;
+  replyId: number | null;
   id: number;
   text: string;
   userId: number;
