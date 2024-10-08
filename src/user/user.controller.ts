@@ -38,7 +38,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe())
   findOne(@Param('id') id: string) {
-    return this.userService.findOne(id);
+    return this.userService.findById(+id);
   }
 
   @Patch(':id')

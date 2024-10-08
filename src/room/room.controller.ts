@@ -27,7 +27,7 @@ export class RoomController {
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe())
   create(@Body() dto: CreateRoomDto, @Request() req: any) {
-    return this.roomService.create(dto, req.user);
+    return this.roomService.create(dto, req.user.id);
   }
 
   @Get()

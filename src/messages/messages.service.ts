@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { IMessage, IUser } from 'types/types';
 import { GetMessagesDto } from './dto/get-messages.dto';
+import { ExternalExceptionsHandler } from '@nestjs/core/exceptions/external-exceptions-handler';
+import { DeleteMessageDto } from './dto/delete-message.dto';
 
 @Injectable()
 export class MessagesService {
@@ -14,6 +16,7 @@ export class MessagesService {
         userId: dto.userId,
         roomId: dto.roomId,
         readUsers: [dto.userId],
+        status: 'send',
       },
     });
     const { id } = newMessage;
@@ -96,6 +99,7 @@ export class MessagesService {
             id: true,
             email: true,
             user_name: true,
+            socketId: true,
           },
         },
         reply: {
@@ -123,11 +127,27 @@ export class MessagesService {
         id,
       },
       data: { text: dto.text },
+      include: {
+        user: {
+          select: {
+            email: true,
+            user_name: true,
+          },
+        },
+      },
     });
   }
 
   async updateRead(id: number, dto: IMessage, user: IUser) {
     const currentMessage = await this.getById(id);
+    const alreadyRead = currentMessage.readUsers.find(
+      (index) => index === user.id,
+    );
+
+    if (alreadyRead) {
+      return currentMessage;
+    }
+
     return await this.prisma.message.update({
       where: {
         id,
@@ -138,6 +158,27 @@ export class MessagesService {
         },
         updatedAt: currentMessage.updatedAt,
       },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            user_name: true,
+            socketId: true,
+          },
+        },
+        reply: {
+          select: {
+            text: true,
+            user: {
+              select: {
+                email: true,
+                user_name: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 
@@ -147,5 +188,17 @@ export class MessagesService {
         id,
       },
     });
+  }
+
+  async removeMany(id: string) {
+    const messageToDelete = await this.prisma.message.findMany({
+      where: { roomId: id },
+    });
+    await this.prisma.message.deleteMany({
+      where: {
+        roomId: id,
+      },
+    });
+    return messageToDelete;
   }
 }

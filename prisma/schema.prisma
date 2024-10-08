@@ -15,6 +15,7 @@ model User {
   user_name String?
   password  String
   color     Json
+  imageUrl String?
   createdAt DateTime  @default(now())
   messages  Message[]
   rooms     Room[]    @relation("RoomToUser")
@@ -29,6 +30,7 @@ model Message {
   replyId      Int?
   roomId       String
   readUsers    Int[]
+  status String?
   createdAt    DateTime  @default(now()) @db.Timestamptz(3)
   updatedAt    DateTime  @default(now()) @updatedAt @db.Timestamptz(3)
   reply        Message?  @relation("ReplyMessage", fields: [replyId], references: [id], onDelete: Cascade)
@@ -40,6 +42,7 @@ model Message {
 model Room {
   id        String    @id @default(uuid())
   color     Json
+  imageUrl String?
   owner Int
   createdAt DateTime  @default(now()) @db.Timestamptz(3)
   messages  Message[]

@@ -2,14 +2,13 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
 import { PrismaService } from 'src/prisma.service';
-import { IUser } from 'types/types';
+import { INewRoom, IRoomData, IUser } from 'types/types';
 import { FilterRoomDto } from './dto/filter-room.dto';
-import { disconnect } from 'process';
 
 @Injectable()
 export class RoomService {
   constructor(private prisma: PrismaService) {}
-  async create(dto: CreateRoomDto, user: IUser) {
+  async create(dto: CreateRoomDto, userId: number) {
     const isExist = await this.prisma.room.findUnique({
       where: { id: dto.roomId },
     });
@@ -20,8 +19,32 @@ export class RoomService {
           users: {
             connect: dto.users?.map((id) => ({ id })),
           },
-          owner: user.id,
+          owner: userId,
           color: dto.color,
+        },
+        include: {
+          users: {
+            select: {
+              id: true,
+              email: true,
+              user_name: true,
+              color: true,
+              online: true,
+              lastSeen: true,
+              socketId: true,
+            },
+          },
+          messages: {
+            take: -1,
+            include: {
+              user: {
+                select: {
+                  email: true,
+                  user_name: true,
+                },
+              },
+            },
+          },
         },
       });
       return newRoom;
@@ -47,10 +70,19 @@ export class RoomService {
             online: true,
             lastSeen: true,
             socketId: true,
+            imageUrl: true,
           },
         },
         messages: {
           take: -1,
+          include: {
+            user: {
+              select: {
+                email: true,
+                user_name: true,
+              },
+            },
+          },
         },
       },
       orderBy: {
@@ -105,6 +137,7 @@ export class RoomService {
             online: true,
             lastSeen: true,
             socketId: true,
+            imageUrl: true,
           },
         },
       },

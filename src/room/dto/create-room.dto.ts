@@ -5,4 +5,5 @@ export class CreateRoomDto {
     first: string;
     second: string;
   };
+  owner: number;
 }
