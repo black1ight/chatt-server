@@ -6,6 +6,7 @@ CREATE TABLE "User" (
     "user_name" TEXT,
     "password" TEXT NOT NULL,
     "color" JSONB NOT NULL,
+    "imageUrl" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "online" BOOLEAN NOT NULL DEFAULT false,
     "lastSeen" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -21,6 +22,7 @@ CREATE TABLE "Message" (
     "replyId" INTEGER,
     "roomId" TEXT NOT NULL,
     "readUsers" INTEGER[],
+    "status" TEXT,
     "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -31,6 +33,7 @@ CREATE TABLE "Message" (
 CREATE TABLE "Room" (
     "id" TEXT NOT NULL,
     "color" JSONB NOT NULL,
+    "imageUrl" TEXT,
     "owner" INTEGER NOT NULL,
     "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
