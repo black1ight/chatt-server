@@ -6,4 +6,5 @@ export class UpdateRoomDto extends PartialType(CreateRoomDto) {
   removeUser?: number;
   owner?: number;
   promoteUser?: number;
+  imageUrl?: string;
 }

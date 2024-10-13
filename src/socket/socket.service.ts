@@ -7,6 +7,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
+import { debounce } from 'lodash';
 import { Socket, Server } from 'socket.io';
 import { MessagesService } from 'src/messages/messages.service';
 import { PrismaService } from 'src/prisma.service';
@@ -17,7 +18,6 @@ import {
   INewRoom,
   IResRoom,
   IRoomData,
-  IUser,
   TypingData,
 } from 'types/types';
 
@@ -30,23 +30,82 @@ export class SocketService implements OnGatewayConnection {
     private prisma: PrismaService,
   ) {}
 
-  setOfflineUser(id: number, client: Socket) {
-    setTimeout(async () => {
-      await this.userService.update(id, {
+  async getUserId(client: Socket) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        socketId: client.id,
+      },
+    });
+    return user;
+  }
+
+  async setOfflineUser(client: Socket, userId: number = null) {
+    if (userId) {
+      const updUser = await this.userService.update(userId, {
         socketId: client.id,
         status: 'offline',
         lastSeen: new Date(),
       });
-    }, 60000);
+      this.server.to(updUser.email).emit('updateUser', updUser);
+    } else {
+      const user = await this.getUserId(client);
+      if (user) {
+        const updUser = await this.userService.update(user.id, {
+          socketId: client.id,
+          status: 'offline',
+          lastSeen: new Date(),
+        });
+        this.server.to(updUser.email).emit('updateUser', updUser);
+      }
+    }
   }
 
-  async setOnlineStatus(id: number, client: Socket) {
-    await this.userService.update(id, {
-      socketId: client.id,
-      status: 'online',
-      lastSeen: new Date(),
-    });
+  async setOnlineStatus(client: Socket, userId: number = null) {
+    if (userId) {
+      const updUser = await this.userService.update(userId, {
+        socketId: client.id,
+        status: 'online',
+        lastSeen: new Date(),
+      });
+      this.server.to(updUser.email).emit('updateUser', updUser);
+    } else {
+      const user = await this.getUserId(client);
+      if (user) {
+        const updUser = await this.userService.update(user.id, {
+          socketId: client.id,
+          status: 'online',
+          lastSeen: new Date(),
+        });
+        this.server.to(updUser.email).emit('updateUser', updUser);
+      }
+    }
   }
+
+  private updateOfflineUser = debounce(
+    (client: Socket, userId: number = null) => {
+      this.setOfflineUser(client, userId);
+    },
+    30000,
+  );
+
+  async noTypeStatus(dto: TypingData) {
+    this.server.to(dto.roomId).emit('typing', { ...dto, typing: false });
+    console.log('typingOFF');
+  }
+
+  private updateUserStatus = debounce(
+    (client: Socket, userId: number = null) => {
+      this.setOnlineStatus(client, userId);
+      this.updateOfflineUser(client, userId);
+    },
+    300,
+  );
+
+  private updateTypeStatus = debounce((dto: TypingData) => {
+    this.noTypeStatus(dto);
+  }, 5000);
+
+  // SERVER
 
   @WebSocketServer() server: Server;
 
@@ -55,14 +114,12 @@ export class SocketService implements OnGatewayConnection {
     @MessageBody() dto: IMessage,
     @ConnectedSocket() client: Socket,
   ) {
-    console.log(`dto: ${dto}`);
-
     const data = await this.messagesService.create(dto);
     if (data) {
       this.server.to(dto.roomId).emit('new-message', data);
     }
-    this.setOnlineStatus(dto.userId, client);
-    this.setOfflineUser(dto.userId, client);
+    this.setOnlineStatus(client);
+    this.setOfflineUser(client);
     console.log(data);
   }
 
@@ -74,10 +131,10 @@ export class SocketService implements OnGatewayConnection {
     const data = await this.messagesService.update(dto.id, dto);
     if (data) {
       this.server.to(dto.roomId).emit('updated-message', data);
-      this.setOnlineStatus(dto.userId, client);
-      this.setOfflineUser(dto.userId, client);
       console.log(dto);
     }
+    this.setOnlineStatus(client);
+    this.setOfflineUser(client);
   }
 
   @SubscribeMessage('delete-message')
@@ -88,17 +145,20 @@ export class SocketService implements OnGatewayConnection {
     const data = await this.messagesService.remove(dto.id);
     if (data) {
       this.server.to(dto.roomId).emit('deleted-message', dto);
-      this.setOnlineStatus(dto.userId, client);
-      this.setOfflineUser(dto.userId, client);
+      this.setOnlineStatus(client);
+      this.setOfflineUser(client);
       console.log(dto);
     }
   }
 
+  // CONNECT
+
   async handleConnection(@ConnectedSocket() client: Socket) {
     const userId = +client.handshake.query.userId;
+
     if (userId) {
-      this.setOnlineStatus(userId, client);
-      this.setOfflineUser(userId, client);
+      this.setOnlineStatus(client, userId);
+      this.setOfflineUser(client, userId);
     }
     console.log('new user connected', `{${userId}}`, client.id);
   }
@@ -117,8 +177,8 @@ export class SocketService implements OnGatewayConnection {
       this.server.to(message.roomId).emit('readed-message', data);
       console.log(data);
     }
-    this.setOnlineStatus(user.id, client);
-    this.setOfflineUser(user.id, client);
+    this.setOnlineStatus(client);
+    this.setOfflineUser(client);
   }
 
   // ======= R O O M ==========
@@ -130,14 +190,17 @@ export class SocketService implements OnGatewayConnection {
   ) {
     const newRoom: IRoomData = await this.roomServise.create(dto, dto.owner);
     if (newRoom) {
-      const userList = newRoom.users.map(async (user) => {
-        return (await this.userService.findById(user.id)).socketId;
+      const userList = await Promise.all(
+        newRoom.users.map(async (user) => {
+          return (await this.userService.findById(user.id)).socketId;
+        }),
+      );
+      userList.map((socketId) => {
+        this.server.to(socketId).emit('joinedNewRoom', newRoom);
       });
-      userList.map(async (socketId) => {
-        this.server.to(await socketId).emit('joinedNewRoom', newRoom);
-      });
-      console.log(newRoom);
     }
+    this.setOnlineStatus(client);
+    this.setOfflineUser(client);
   }
 
   @SubscribeMessage('clearHistory')
@@ -147,7 +210,8 @@ export class SocketService implements OnGatewayConnection {
   ) {
     const data = await this.messagesService.removeMany(roomId);
     data && this.server.to(roomId).emit('clearedRoom', data);
-    console.log(data);
+    this.setOnlineStatus(client);
+    this.setOfflineUser(client);
   }
 
   @SubscribeMessage('deleteRoom')
@@ -165,6 +229,8 @@ export class SocketService implements OnGatewayConnection {
       });
       console.log(deletedRoom);
     }
+    this.setOnlineStatus(client);
+    this.setOfflineUser(client);
   }
 
   @SubscribeMessage('joinRoom')
@@ -177,10 +243,24 @@ export class SocketService implements OnGatewayConnection {
     if (!isInRoom) {
       client.join(room.id);
       client.emit('joinedRoom', room.id);
-      this.setOnlineStatus(user.id, client);
-      this.setOfflineUser(user.id, client);
       console.log(`${user.email} has join to ${room.id}`, client.id);
     }
+    this.updateUserStatus(client);
+  }
+
+  @SubscribeMessage('joinUser')
+  async handleJoinUser(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() { userRoom, user },
+  ) {
+    const isInRoom = client.rooms.has(userRoom.email);
+
+    if (!isInRoom) {
+      client.join(userRoom.email);
+      client.emit('joinedUser', userRoom.email);
+      console.log(`${user.email} has join to ${userRoom.email}`, client.id);
+    }
+    this.updateUserStatus(client);
   }
 
   @SubscribeMessage('leaveRoom')
@@ -189,9 +269,85 @@ export class SocketService implements OnGatewayConnection {
     @MessageBody() { room, user },
   ) {
     client.leave(room.id);
-    this.setOnlineStatus(user.id, client);
-    this.setOfflineUser(user.id, client);
     console.log(`${user.email} has leave ${room.id}`);
+    this.updateUserStatus(client);
+  }
+
+  @SubscribeMessage('leaveUser')
+  async handleLeaveUser(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() { userRoom, user },
+  ) {
+    client.leave(userRoom.email);
+    console.log(`${user.email} has leave ${userRoom.email}`);
+    this.updateUserStatus(client);
+  }
+
+  @SubscribeMessage('inviteToRoom')
+  async handleInvateToRoom(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() { roomId, dto },
+  ) {
+    const data = await this.roomServise.update(roomId, dto);
+    if (data) {
+      const userList = data.users.map(async (user) => {
+        return (await this.userService.findById(user.id)).socketId;
+      });
+      userList &&
+        userList.map(async (socketId) => {
+          this.server.to(await socketId).emit('invatedRoom', data);
+        });
+      console.log(data);
+    }
+    this.updateUserStatus(client);
+  }
+
+  @SubscribeMessage('excludeFromRoom')
+  async handleExcludeFromRoom(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() { roomId, removeUser },
+  ) {
+    console.log(roomId, removeUser);
+
+    const data = await this.roomServise.update(roomId, { removeUser });
+    const excludedUser = await this.userService.findById(removeUser);
+    if (data && excludedUser) {
+      this.server.to(roomId).emit('updateRoom', data);
+      this.server.to(excludedUser.socketId).emit('deletedRoom', data);
+    }
+    this.updateUserStatus(client);
+  }
+
+  @SubscribeMessage('promoteUser')
+  async handlePromoteUser(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() { roomId, dto },
+  ) {
+    const data = await this.roomServise.update(roomId, dto);
+    data && this.server.to(roomId).emit('updateRoom', data);
+    this.updateUserStatus(client);
+  }
+
+  @SubscribeMessage('editRoom')
+  async handleEditRoom(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() { roomId, dto },
+  ) {
+    const data = await this.roomServise.update(roomId, dto);
+    data && this.server.to(data.id).emit('updateRoom', data);
+    this.updateUserStatus(client);
+  }
+
+  // U S E R
+
+  @SubscribeMessage('editUser')
+  async handleEditUser(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() { userId, dto },
+  ) {
+    const data = await this.userService.update(userId, dto);
+    data && this.server.to(data.email).emit('updateUser', data);
+    this.updateUserStatus(client);
   }
 
   @SubscribeMessage('typing')
@@ -200,11 +356,8 @@ export class SocketService implements OnGatewayConnection {
     @ConnectedSocket() client: Socket,
   ) {
     this.server.to(dto.roomId).emit('typing', { ...dto, typing: true });
-    this.setOnlineStatus(dto.userId, client);
-    this.setOfflineUser(dto.userId, client);
-    setTimeout(() => {
-      this.server.to(dto.roomId).emit('typing', { ...dto, typing: false });
-    }, 5000);
+    this.updateTypeStatus(dto);
+    this.updateUserStatus(client);
   }
 }
 

@@ -166,24 +166,18 @@ export class RoomService {
     if (dto.promoteUser) {
       updateData.owner = dto.promoteUser;
     }
-    return await this.prisma.room.update({
+
+    if (dto.imageUrl) {
+      updateData.imageUrl = dto.imageUrl;
+    }
+
+    await this.prisma.room.update({
       where: {
         id,
       },
       data: updateData,
-      include: {
-        users: {
-          select: {
-            id: true,
-            email: true,
-            user_name: true,
-            color: true,
-            online: true,
-            lastSeen: true,
-          },
-        },
-      },
     });
+    return this.findOne(id);
   }
 
   async remove(id: string) {
