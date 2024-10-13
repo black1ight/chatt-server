@@ -31,7 +31,7 @@ export class SocketService implements OnGatewayConnection {
   ) {}
 
   async getUserId(client: Socket) {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findFirst({
       where: {
         socketId: client.id,
       },
