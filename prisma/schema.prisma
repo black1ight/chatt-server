@@ -10,7 +10,7 @@ datasource db {
 
 model User {
   id        Int       @id @default(autoincrement())
-  socketId String?
+  socketId String? @unique
   email     String    @unique
   user_name String?
   password  String
