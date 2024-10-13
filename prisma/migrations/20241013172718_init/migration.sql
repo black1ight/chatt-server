@@ -47,6 +47,9 @@ CREATE TABLE "_RoomToUser" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "User_socketId_key" ON "User"("socketId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
