@@ -11,4 +11,5 @@ export class CreateUserDto {
     first: string;
     second: string;
   };
+  sockedId: string;
 }
