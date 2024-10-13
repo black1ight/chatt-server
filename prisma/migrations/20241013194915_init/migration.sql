@@ -1,7 +1,7 @@
 -- CreateTable
 CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
-    "socketId" TEXT,
+    "socketId" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "user_name" TEXT,
     "password" TEXT NOT NULL,
