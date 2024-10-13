@@ -26,6 +26,7 @@ export class UserService {
         email: createUserDto.email,
         password: await argon2.hash(createUserDto.password),
         color: createUserDto.color,
+        socketId: createUserDto.sockedId,
       },
     });
 
