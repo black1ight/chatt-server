@@ -17,9 +17,7 @@ import {
   IMessage,
   INewRoom,
   IResRoom,
-  IResUser,
   IRoomData,
-  IUser,
   TypingData,
 } from 'types/types';
 
@@ -370,5 +368,3 @@ export class EventsGateway implements OnGatewayDisconnect {
     console.log(`Client disconnected: ${client.id}`);
   }
 }
-
-// Написать сокет для приглашения в группы
