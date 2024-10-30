@@ -52,14 +52,19 @@ export class MessagesService {
               {
                 room: {
                   users: {
-                    some: {
-                      id: user.id,
-                    },
+                    some: { id: user.id },
                   },
                 },
               },
             ],
           },
+          // {
+          //   OR: [
+          //     {
+          //       userId: user.id,
+          //     },
+          //   ],
+          // },
         ],
       },
       include: {
@@ -138,7 +143,7 @@ export class MessagesService {
     });
   }
 
-  async updateRead(id: number, dto: IMessage, user: IUser) {
+  async updateRead(id: number, user: IUser) {
     const currentMessage = await this.getById(id);
     const alreadyRead = currentMessage.readUsers.find(
       (index) => index === user.id,

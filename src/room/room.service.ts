@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
 import { PrismaService } from 'src/prisma.service';
-import { INewRoom, IRoomData, IUser } from 'types/types';
+import { IUser } from 'types/types';
 import { FilterRoomDto } from './dto/filter-room.dto';
 
 @Injectable()
@@ -32,6 +32,8 @@ export class RoomService {
               online: true,
               lastSeen: true,
               socketId: true,
+              imageUrl: true,
+              createdAt: true,
             },
           },
           messages: {
@@ -95,33 +97,33 @@ export class RoomService {
 
   async findBySearch(user: IUser, query: FilterRoomDto) {
     const { search } = query;
+    const searchLength = search.length;
 
-    return await this.prisma.room.findMany({
-      where: {
-        OR: [
-          {
-            id: {
-              contains: search,
-              mode: 'insensitive',
+    if (searchLength >= 4) {
+      return await this.prisma.room.findMany({
+        where: {
+          OR: [
+            {
+              id: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          ],
+        },
+        include: {
+          users: {
+            select: {
+              id: true,
+              email: true,
+              user_name: true,
+              online: true,
+              lastSeen: true,
             },
           },
-        ],
-        users: {
-          some: { id: user.id },
         },
-      },
-      include: {
-        users: {
-          select: {
-            id: true,
-            email: true,
-            user_name: true,
-            online: true,
-            lastSeen: true,
-          },
-        },
-      },
-    });
+      });
+    }
   }
 
   async findOne(id: string) {

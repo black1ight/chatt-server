@@ -13,17 +13,34 @@ export class UserService {
     private readonly jwtService: JwtService,
   ) {}
 
+  private async checkUserName(name: string) {
+    const exist = await this.prisma.user.findUnique({
+      where: {
+        user_name: name,
+      },
+    });
+    return exist ? null : name;
+  }
+
   async create(createUserDto: CreateUserDto) {
+    const userNameFromEmail = createUserDto.email.split('@')[0];
     const existUser = await this.prisma.user.findUnique({
       where: {
         email: createUserDto.email,
       },
     });
+
     if (existUser) throw new BadRequestException('This email already exist');
+    const userName =
+      (await this.checkUserName(userNameFromEmail)) ||
+      (await this.checkUserName(
+        userNameFromEmail + Math.floor(Math.random() * 10),
+      ));
 
     const user = await this.prisma.user.create({
       data: {
         email: createUserDto.email,
+        user_name: userName,
         password: await argon2.hash(createUserDto.password),
         color: createUserDto.color,
       },
@@ -36,39 +53,48 @@ export class UserService {
 
   async findMany(query: GetUsersDto) {
     const { search } = query;
+    const searchLength = search.length;
 
-    return await this.prisma.user.findMany({
-      where: {
-        OR: [
-          {
-            email: {
-              contains: search,
-              mode: 'insensitive',
+    if (searchLength >= 4) {
+      return await this.prisma.user.findMany({
+        where: {
+          OR: [
+            {
+              email: {
+                contains: search,
+                mode: 'insensitive',
+              },
             },
-          },
-          {
-            user_name: {
-              contains: search,
-              mode: 'insensitive',
+            {
+              user_name: {
+                equals: search,
+                mode: 'insensitive',
+              },
             },
-          },
-        ],
-      },
-      select: {
-        id: true,
-        email: true,
-        user_name: true,
-        color: true,
-        online: true,
-        lastSeen: true,
-        socketId: true,
-      },
-    });
+          ],
+        },
+        select: {
+          id: true,
+          email: true,
+          user_name: true,
+          color: true,
+          online: true,
+          lastSeen: true,
+          socketId: true,
+        },
+      });
+    }
   }
 
   async findOne(email: string) {
     return await this.prisma.user.findUnique({
       where: { email },
+    });
+  }
+
+  async findBySocketId(socketId: string) {
+    return await this.prisma.user.findUnique({
+      where: { socketId },
     });
   }
 

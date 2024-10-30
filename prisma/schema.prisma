@@ -10,9 +10,9 @@ datasource db {
 
 model User {
   id        Int       @id @default(autoincrement())
-  socketId  String?    @unique
+  socketId  String?   @unique
   email     String    @unique
-  user_name String?
+  user_name String?   @unique
   password  String
   color     Json
   imageUrl  String?
