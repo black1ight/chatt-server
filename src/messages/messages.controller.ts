@@ -69,6 +69,6 @@ export class MessagesController {
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe())
   removeMany(@Param('id') id: string) {
-    return this.messagesService.removeMany(id);
+    return this.messagesService.removeMany(+id);
   }
 }

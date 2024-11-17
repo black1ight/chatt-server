@@ -2,8 +2,6 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { IMessage, IUser } from 'types/types';
 import { GetMessagesDto } from './dto/get-messages.dto';
-import { ExternalExceptionsHandler } from '@nestjs/core/exceptions/external-exceptions-handler';
-import { DeleteMessageDto } from './dto/delete-message.dto';
 
 @Injectable()
 export class MessagesService {
@@ -24,55 +22,36 @@ export class MessagesService {
   }
 
   async findMany(query: GetMessagesDto, user: IUser) {
-    const { room, unread, sortBy } = query;
+    const { room } = query;
+    const conditions = [];
+    if (room) {
+      conditions.push({
+        OR: [{ roomId: +room }],
+      });
+    } else {
+      conditions.push({
+        OR: [
+          {
+            room: {
+              users: {
+                some: { id: user.id },
+              },
+            },
+          },
+        ],
+      });
+    }
 
     return await this.prisma.message.findMany({
       where: {
-        AND: [
-          {
-            OR: [
-              {
-                roomId: room,
-              },
-            ],
-          },
-          {
-            OR: [
-              {
-                NOT: {
-                  readUsers: {
-                    has: +unread,
-                  },
-                },
-              },
-            ],
-          },
-          {
-            OR: [
-              {
-                room: {
-                  users: {
-                    some: { id: user.id },
-                  },
-                },
-              },
-            ],
-          },
-          // {
-          //   OR: [
-          //     {
-          //       userId: user.id,
-          //     },
-          //   ],
-          // },
-        ],
+        AND: conditions,
       },
       include: {
         user: {
           select: {
             id: true,
             email: true,
-            user_name: true,
+            username: true,
           },
         },
         reply: {
@@ -81,7 +60,7 @@ export class MessagesService {
             user: {
               select: {
                 email: true,
-                user_name: true,
+                username: true,
               },
             },
           },
@@ -103,7 +82,7 @@ export class MessagesService {
           select: {
             id: true,
             email: true,
-            user_name: true,
+            username: true,
             socketId: true,
           },
         },
@@ -113,7 +92,7 @@ export class MessagesService {
             user: {
               select: {
                 email: true,
-                user_name: true,
+                username: true,
               },
             },
           },
@@ -136,7 +115,7 @@ export class MessagesService {
         user: {
           select: {
             email: true,
-            user_name: true,
+            username: true,
           },
         },
       },
@@ -168,7 +147,7 @@ export class MessagesService {
           select: {
             id: true,
             email: true,
-            user_name: true,
+            username: true,
             socketId: true,
           },
         },
@@ -178,7 +157,7 @@ export class MessagesService {
             user: {
               select: {
                 email: true,
-                user_name: true,
+                username: true,
               },
             },
           },
@@ -195,7 +174,7 @@ export class MessagesService {
     });
   }
 
-  async removeMany(id: string) {
+  async removeMany(id: number) {
     const messageToDelete = await this.prisma.message.findMany({
       where: { roomId: id },
     });

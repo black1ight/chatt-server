@@ -1,0 +1,20 @@
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": PostgreSQL database "chatt_bd_6tq2", schema "public" at "dpg-csn0ma1u0jms73fumv8g-a.frankfurt-postgres.render.com"
+
+Applying migration `20241112151354_edit`
+
+The following migration(s) have been created and applied from new schema changes:
+
+migrations/
+  └─ 20241112151354_edit/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[GEPERM: operation not permitted, unlink 'D:\Dev\nestjs\react-chat\server\node_mod
+ules\.prisma\client\query_engine-windows.dll.node'
+
+

@@ -8,13 +8,13 @@ export interface IUser {
 
 export interface IMessageUser {
   id: number;
-  user_name?: string | null;
+  username?: string | null;
   email?: string;
 }
 
 export interface IUser {
   id: number;
-  user_name: string;
+  username: string;
   email: string;
   socketId: string;
 }
@@ -32,7 +32,7 @@ export interface IReplyData {
   text: string;
   user: {
     email: string;
-    user_name: string;
+    username: string;
   };
 }
 
@@ -41,7 +41,8 @@ export interface IMessage {
   id: number;
   text: string;
   userId: number;
-  roomId: string;
+  roomId: number;
+  dialogId: number;
   readUsers: number[];
 }
 
@@ -49,11 +50,11 @@ export interface IUserData {
   id: number;
   email?: string;
   password?: string;
-  user_name?: string;
+  username?: string;
 }
 
 export interface IRoomData {
-  id: string;
+  id: number;
   users: IUserData[];
   createdAt: Date;
 }
@@ -66,7 +67,7 @@ export interface IRoomColors {
 export interface IResUser {
   email: string | undefined;
   password?: string | undefined;
-  user_name: string | null | undefined;
+  username: string | null | undefined;
   id: number | undefined;
   color: IRoomColors;
   online: Boolean;
@@ -77,7 +78,9 @@ export interface IResUser {
 }
 
 export interface IResRoom {
-  id: string;
+  id: number;
+  name: string;
+  type: string;
   users: IResUser[];
   messages: IResMessage[];
   color: IRoomColors;
@@ -86,10 +89,17 @@ export interface IResRoom {
 }
 
 export interface INewRoom {
-  roomId: string;
+  name: string;
+  type: string;
   users: number[];
   color: IRoomColors;
   owner: number;
+}
+
+export interface INewDialog {
+  type: string;
+  myId: number;
+  users: number[];
 }
 
 export interface JoinData {
@@ -100,6 +110,6 @@ export interface JoinData {
 export interface TypingData {
   userId: number;
   userName: string;
-  roomId: string;
+  roomId: number;
   typing: boolean;
 }

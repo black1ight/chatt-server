@@ -1,4 +1,4 @@
 export class CreateMessageDto {
-  roomId?: string;
+  roomId?: number;
   readUsers?: number[];
 }

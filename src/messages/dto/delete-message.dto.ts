@@ -1,3 +1,3 @@
 export class DeleteMessageDto {
-  roomId?: string;
+  roomId?: number;
 }

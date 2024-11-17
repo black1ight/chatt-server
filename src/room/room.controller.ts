@@ -48,20 +48,20 @@ export class RoomController {
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe())
   findOne(@Param('id') id: string) {
-    return this.roomService.findOne(id);
+    return this.roomService.findOne(+id);
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe())
   update(@Param('id') id: string, @Body() updateRoomDto: UpdateRoomDto) {
-    return this.roomService.update(id, updateRoomDto);
+    return this.roomService.update(+id, updateRoomDto);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe())
   remove(@Param('id') id: string) {
-    return this.roomService.remove(id);
+    return this.roomService.remove(+id);
   }
 }

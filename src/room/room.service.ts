@@ -1,58 +1,58 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
 import { PrismaService } from 'src/prisma.service';
 import { IUser } from 'types/types';
 import { FilterRoomDto } from './dto/filter-room.dto';
+import { SocketService } from 'src/socket/socket.service';
 
 @Injectable()
 export class RoomService {
   constructor(private prisma: PrismaService) {}
   async create(dto: CreateRoomDto, userId: number) {
-    const isExist = await this.prisma.room.findUnique({
-      where: { id: dto.roomId },
-    });
-    if (!isExist) {
-      const newRoom = await this.prisma.room.create({
-        data: {
-          id: dto.roomId,
-          users: {
-            connect: dto.users?.map((id) => ({ id })),
-          },
-          owner: userId,
-          color: dto.color,
+    const newRoom = await this.prisma.room.create({
+      data: {
+        name: dto.name,
+        type: dto.type,
+        users: {
+          connect: dto.users?.map((id) => ({ id })),
         },
-        include: {
-          users: {
-            select: {
-              id: true,
-              email: true,
-              user_name: true,
-              color: true,
-              online: true,
-              lastSeen: true,
-              socketId: true,
-              imageUrl: true,
-              createdAt: true,
-            },
+        owner: userId,
+        color: dto.color,
+      },
+      include: {
+        users: {
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            color: true,
+            online: true,
+            lastSeen: true,
+            socketId: true,
+            imageUrl: true,
+            createdAt: true,
           },
-          messages: {
-            take: -1,
-            include: {
-              user: {
-                select: {
-                  email: true,
-                  user_name: true,
-                },
+        },
+        messages: {
+          take: -1,
+          include: {
+            user: {
+              select: {
+                email: true,
+                username: true,
               },
             },
           },
         },
-      });
-      return newRoom;
-    } else {
-      throw new BadRequestException('This room already is exist!');
-    }
+      },
+    });
+    return newRoom;
   }
 
   async findAll(user: IUser) {
@@ -67,7 +67,9 @@ export class RoomService {
           select: {
             id: true,
             email: true,
-            user_name: true,
+            username: true,
+            bio: true,
+            phone: true,
             color: true,
             online: true,
             lastSeen: true,
@@ -81,7 +83,7 @@ export class RoomService {
             user: {
               select: {
                 email: true,
-                user_name: true,
+                username: true,
               },
             },
           },
@@ -104,7 +106,7 @@ export class RoomService {
         where: {
           OR: [
             {
-              id: {
+              name: {
                 contains: search,
                 mode: 'insensitive',
               },
@@ -116,7 +118,7 @@ export class RoomService {
             select: {
               id: true,
               email: true,
-              user_name: true,
+              username: true,
               online: true,
               lastSeen: true,
             },
@@ -126,7 +128,7 @@ export class RoomService {
     }
   }
 
-  async findOne(id: string) {
+  async findOne(id: number) {
     return await this.prisma.room.findUnique({
       where: { id },
       include: {
@@ -134,7 +136,7 @@ export class RoomService {
           select: {
             id: true,
             email: true,
-            user_name: true,
+            username: true,
             color: true,
             online: true,
             lastSeen: true,
@@ -146,7 +148,7 @@ export class RoomService {
     });
   }
 
-  async update(id: string, dto: UpdateRoomDto) {
+  async update(id: number, dto: UpdateRoomDto) {
     const updateData: any = {};
 
     if (dto.addUsers) {
@@ -182,7 +184,7 @@ export class RoomService {
     return this.findOne(id);
   }
 
-  async remove(id: string) {
+  async remove(id: number) {
     return await this.prisma.room.delete({
       where: { id },
     });

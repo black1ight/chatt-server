@@ -1,9 +1,11 @@
 -- CreateTable
 CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
-    "socketId" TEXT NOT NULL,
+    "socketId" TEXT,
     "email" TEXT NOT NULL,
-    "user_name" TEXT,
+    "username" TEXT,
+    "phone" TEXT,
+    "bio" TEXT,
     "password" TEXT NOT NULL,
     "color" JSONB NOT NULL,
     "imageUrl" TEXT,
@@ -20,7 +22,7 @@ CREATE TABLE "Message" (
     "text" TEXT NOT NULL,
     "userId" INTEGER NOT NULL,
     "replyId" INTEGER,
-    "roomId" TEXT NOT NULL,
+    "roomId" INTEGER NOT NULL,
     "readUsers" INTEGER[],
     "status" TEXT,
     "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -31,10 +33,12 @@ CREATE TABLE "Message" (
 
 -- CreateTable
 CREATE TABLE "Room" (
-    "id" TEXT NOT NULL,
-    "color" JSONB NOT NULL,
+    "id" SERIAL NOT NULL,
+    "name" TEXT,
+    "type" TEXT NOT NULL,
+    "color" JSONB,
     "imageUrl" TEXT,
-    "owner" INTEGER NOT NULL,
+    "owner" INTEGER,
     "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Room_pkey" PRIMARY KEY ("id")
@@ -42,7 +46,7 @@ CREATE TABLE "Room" (
 
 -- CreateTable
 CREATE TABLE "_RoomToUser" (
-    "A" TEXT NOT NULL,
+    "A" INTEGER NOT NULL,
     "B" INTEGER NOT NULL
 );
 
@@ -51,6 +55,12 @@ CREATE UNIQUE INDEX "User_socketId_key" ON "User"("socketId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_phone_key" ON "User"("phone");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_RoomToUser_AB_unique" ON "_RoomToUser"("A", "B");
