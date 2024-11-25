@@ -55,6 +55,7 @@ export interface IUserData {
 
 export interface IRoomData {
   id: number;
+  type: string;
   users: IUserData[];
   createdAt: Date;
 }

@@ -100,6 +100,9 @@ export class SocketService implements OnGatewayConnection {
     userList.map((user) => {
       this.server.to(user.socketId).emit('joinedNewRoom', room);
       this.server.to(user.socketId).emit('updateUser', room.users);
+      if (room.type === 'dialog') {
+        this.server.to(user.socketId).emit('newDialog', room);
+      }
     });
   }
 
