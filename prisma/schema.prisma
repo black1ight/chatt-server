@@ -12,9 +12,9 @@ model User {
   id        Int       @id @default(autoincrement())
   socketId  String?   @unique
   email     String    @unique
-  username String?   @unique
-  phone String?   @unique
-  bio String?
+  username  String?   @unique
+  phone     String?   @unique
+  bio       String?
   password  String
   color     Json
   imageUrl  String?
@@ -37,7 +37,7 @@ model Message {
   updatedAt    DateTime  @default(now()) @updatedAt @db.Timestamptz(3)
   reply        Message?  @relation("ReplyMessage", fields: [replyId], references: [id], onDelete: Cascade)
   replyMessage Message[] @relation("ReplyMessage")
-  room         Room?     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  room         Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
   user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -45,7 +45,7 @@ model Room {
   id        Int       @id @default(autoincrement())
   name      String?
   type      String
-  isTemp    Boolean @default(false)
+  isTemp    Boolean   @default(false)
   color     Json?
   imageUrl  String?
   owner     Int?
@@ -53,5 +53,3 @@ model Room {
   messages  Message[]
   users     User[]    @relation("RoomToUser")
 }
-
-
