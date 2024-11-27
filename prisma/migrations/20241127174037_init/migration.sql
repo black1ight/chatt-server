@@ -36,6 +36,7 @@ CREATE TABLE "Room" (
     "id" SERIAL NOT NULL,
     "name" TEXT,
     "type" TEXT NOT NULL,
+    "isTemp" BOOLEAN NOT NULL DEFAULT false,
     "color" JSONB,
     "imageUrl" TEXT,
     "owner" INTEGER,
