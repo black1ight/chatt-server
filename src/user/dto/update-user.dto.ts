@@ -6,4 +6,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   status?: string;
   lastSeen?: Date;
   imageUrl?: string;
+  username?: string;
+  phone?: string;
+  bio?: string;
 }

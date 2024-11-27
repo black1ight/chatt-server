@@ -1,5 +1,6 @@
 export class CreateRoomDto {
-  roomId: string;
+  name: string;
+  type: string;
   users: number[];
   color: {
     first: string;
