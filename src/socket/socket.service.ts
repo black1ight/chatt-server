@@ -118,7 +118,7 @@ export class SocketService implements OnGatewayConnection {
     const tempId = dto.id;
     const data = await this.messagesService.create(dto);
     if (data && data.roomId) {
-      this.server.to(`${dto.roomId}`).emit('new-message', { data, tempId });
+      this.server.to(`${dto.roomId}`).emit('newMessage', { data, tempId });
     }
 
     this.setOnlineStatus(client);
