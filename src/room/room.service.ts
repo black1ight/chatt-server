@@ -1,15 +1,9 @@
-import {
-  BadRequestException,
-  forwardRef,
-  Inject,
-  Injectable,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
 import { PrismaService } from 'src/prisma.service';
 import { IUser } from 'types/types';
 import { FilterRoomDto } from './dto/filter-room.dto';
-import { SocketService } from 'src/socket/socket.service';
 
 @Injectable()
 export class RoomService {

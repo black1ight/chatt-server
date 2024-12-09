@@ -112,16 +112,17 @@ export class UserService {
   }
 
   async update(id: number, dto: UpdateUserDto) {
+    const userExist = await this.findById(id);
     const updateData: any = {};
     if (dto.status && dto.lastSeen && dto.socketId) {
       updateData.socketId = dto.socketId;
       updateData.online = dto.status === 'online' ? true : false;
       updateData.lastSeen = dto.lastSeen;
     }
-    if (dto.imageUrl) {
+    if (dto.imageUrl && userExist) {
       updateData.imageUrl = dto.imageUrl;
     }
-    if (dto.username) {
+    if (dto.username && userExist) {
       const exist = await this.findOneByField('username', dto.username);
       if (!exist) {
         updateData.username = dto.username;
@@ -129,7 +130,7 @@ export class UserService {
         throw new Error('This name already exists!');
       }
     }
-    if (dto.phone) {
+    if (dto.phone && userExist) {
       const exist = await this.findOneByField('phone', dto.phone);
       if (!exist) {
         updateData.phone = dto.phone;
@@ -137,9 +138,10 @@ export class UserService {
         throw new Error('This phone number already exists!');
       }
     }
-    if (dto.bio) {
+    if (dto.bio && userExist) {
       updateData.bio = dto.bio;
     }
+
     return await this.prisma.user.update({
       where: {
         id,
