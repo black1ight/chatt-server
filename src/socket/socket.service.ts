@@ -296,12 +296,10 @@ export class SocketService implements OnGatewayConnection {
     @ConnectedSocket() client: Socket,
     @MessageBody() { roomId, removeUser },
   ) {
-    console.log(roomId, removeUser);
-
     const data = await this.roomServise.update(roomId, { removeUser });
     const excludedUser = await this.userService.findById(removeUser);
     if (data && excludedUser) {
-      this.server.to(roomId).emit('updateRoom', data);
+      this.server.to(`${roomId}`).emit('updateRoom', data);
       this.server.to(excludedUser.socketId).emit('deletedRoom', data);
     }
     this.setOnlineStatus(client);
