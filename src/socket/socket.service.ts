@@ -278,12 +278,12 @@ export class SocketService implements OnGatewayConnection {
   ) {
     const data = await this.roomServise.update(roomId, dto);
     if (data) {
-      const userList = data.users.map(async (user) => {
-        return (await this.userService.findById(user.id)).socketId;
-      });
+      const userList = await Promise.all(
+        data.users.map((user) => this.userService.findById(user.id)),
+      );
       userList &&
-        userList.map(async (socketId) => {
-          this.server.to(await socketId).emit('invatedRoom', data);
+        userList.map((user) => {
+          this.server.to(user.socketId).emit('invatedRoom', data);
         });
       console.log(data);
     }
@@ -312,7 +312,7 @@ export class SocketService implements OnGatewayConnection {
     @MessageBody() { roomId, dto },
   ) {
     const data = await this.roomServise.update(roomId, dto);
-    data && this.server.to(roomId).emit('updateRoom', data);
+    data && this.server.to(`${roomId}`).emit('updateRoom', data);
     this.setOnlineStatus(client);
     this.setOfflineUser(client);
   }
