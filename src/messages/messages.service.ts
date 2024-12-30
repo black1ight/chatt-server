@@ -52,6 +52,7 @@ export class MessagesService {
             id: true,
             email: true,
             username: true,
+            color: true,
           },
         },
         reply: {
@@ -61,6 +62,7 @@ export class MessagesService {
               select: {
                 email: true,
                 username: true,
+                color: true,
               },
             },
           },
@@ -84,6 +86,7 @@ export class MessagesService {
             email: true,
             username: true,
             socketId: true,
+            color: true,
           },
         },
         reply: {
@@ -93,6 +96,7 @@ export class MessagesService {
               select: {
                 email: true,
                 username: true,
+                color: true,
               },
             },
           },
@@ -116,6 +120,7 @@ export class MessagesService {
           select: {
             email: true,
             username: true,
+            color: true,
           },
         },
       },
@@ -149,6 +154,7 @@ export class MessagesService {
             email: true,
             username: true,
             socketId: true,
+            color: true,
           },
         },
         reply: {
@@ -158,6 +164,7 @@ export class MessagesService {
               select: {
                 email: true,
                 username: true,
+                color: true,
               },
             },
           },
